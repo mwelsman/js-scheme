@@ -21,13 +21,57 @@
 	return r7rs.regex.identifier.exec(s) !== null;
     };
 
-    // TODO: function to pull out one level of s-expressions and identifiers
+    // Build a tree out of nested s-expressions
+    r7rs.tree = function tree(s) {
+	// TODO: support strings enclosed in ' or "
+	// TODO: support escape characters
 
-    r7rs.tokenize = function tokenize(s) {
-	return s.match(/\S+/g);
+	function Node(parent) {
+	    this.parent = parent;
+	    this.children = Array.prototype.slice.call(arguments, 1);
+	}
+
+	var curNode = undefined;
+	var append = false;
+
+	s.split('').forEach(function(c) {
+	    switch(c) {
+	    case '(':
+		var newNode = new Node(curNode);
+		if(curNode) {
+		    curNode.children.push(newNode);
+		}
+		curNode = newNode;
+		console.log('make a new node', curNode);
+		append = false;
+		break;
+	    case ')':
+		if(curNode.parent) {
+		    var oldNode = curNode;
+		    curNode = curNode.parent;
+		    delete oldNode.parent; // we don't need this anymore and it is a circular reference
+		}
+		console.log('move up a level');
+		append = false;
+		break;
+	    default:
+		if(c.match(/[ ]/)) {
+		    console.log('skip whitespace');
+		    append = false; // start a new token
+		    break;
+		}
+		console.log('read a non-whitespace char');
+		append ? curNode.children[curNode.children.length - 1] += c : curNode.children.push(c);
+		append = true;
+		break;
+	    }
+	});
+	return curNode;
     };
 
-    // Find identifiers and s-expressions
+    r7rs.
+
+    // Find one level of identifiers and s-expressions
     r7rs.superTokenize = function superTokenize(exp) {
 	var sRegex = new RegExp(r7rs.regex.singleLevelParen);
 	var match, indices = [];
@@ -40,12 +84,12 @@
 	var last = 0, result = [];
 	indices.forEach(function(indexRange) {
 	    if(last < indexRange[0]) {
-		result.push(exp.substr(last, indexRange[0] - last));
+		result.push(exp.substr(last, indexRange[0] - last).trim());
 	    }
-	    result.push(exp.substr(indexRange[0], indexRange[1]));
+	    result.push(exp.substr(indexRange[0], indexRange[1]).trim());
 	    last = indexRange[1];
 	});
-	return result;
+	return result.filter(function(token) { return !!token; });
     };
 
     r7rs.stripExpression = function strip(sexp) {
@@ -91,6 +135,8 @@
 	    }
 
 	    // FIXME: doesn't handle recursion with some s-exps, some identifiers
+	    // FIXME: whitespace needs to be stripped so it doesn't result in more
+	    //        nodes!
 	    var result = [];
 	    r7rs.superTokenize(s).forEach(function(token) {
 		result.push(treeify(token));
