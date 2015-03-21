@@ -1,7 +1,32 @@
 <html>
+  <head>
+    <link rel="stylesheet" href="bower_components/jquery.terminal/css/jquery.terminal.css">
+    <style>
+      html {
+	  background-color: black;
+      }
+      div#term {
+	  border: 1px solid gray;
+	  margin: 30 auto;
+      }
+
+      .terminal, .cmd {
+	  font-size: 18px;
+      }
+
+      .terminal .terminal-output div div, .cmd .prompt, .cmd span {
+	  line-height: 22px;
+      }
+    </style>
+  </head>
   <body>
-    <pre>
-      <script src="eval.js"></script>
-    </pre>
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/jquery.terminal/js/jquery.terminal-0.8.8.js"></script>
+    <script src="eval.js"></script>
+    <script src="term.js"></script>
+
+    <div id="term">
+      <!-- terminal will be injected here -->
+    </div>
   </body>
 </html>

@@ -51,6 +51,12 @@
 	    }
 	    r7rs.globalContext[target] = value;
 	    return value;
+	},
+	'globals': function printGlobals() {
+	    if(arguments.length) {
+		throw 'Wrong number of arguments (expected 0)';
+	    }
+	    return JSON.stringify(r7rs.globalContext);
 	}
     };
 
