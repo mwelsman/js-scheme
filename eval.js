@@ -17,59 +17,72 @@
     };
     context[globalName] = r7rs;
 
+    function reduceArgs(reduceFunction) {
+	return function () {
+	    return Array.prototype.slice.call(arguments).reduce(reduceFunction);
+	};
+    };
+
+    r7rs.builtIns = {
+	'+': reduceArgs(function add (sum, n) { return sum + Number(n); }),
+	'-': reduceArgs(function add (sum, n) { return sum - Number(n); }),
+	'*': reduceArgs(function add (sum, n) { return sum * Number(n); }),
+	'/': reduceArgs(function add (sum, n) { return sum / Number(n); }),
+	'print': console.log.bind(console)
+    };
+
     r7rs.isIdentifier = function isIdentifier(s) {
 	return r7rs.regex.identifier.exec(s) !== null;
     };
 
+    r7rs.eval = function eval(list) {
+	var args = list.slice(1).map(function convert(item) {
+	    if (Array.isArray(item)) {
+		return eval(item);
+	    } else {
+		// Perform number conversion
+		return Number(item[0]) ? Number(item): item;
+	    }
+	});
+	return r7rs.builtIns[list[0]].apply(null, args);
+    };
+
     // Build a tree out of nested s-expressions
     r7rs.tree = function tree(s) {
-	// TODO: support strings enclosed in ' or "
-	// TODO: support escape characters
-
-	function Node(parent) {
-	    this.parent = parent;
-	    this.children = Array.prototype.slice.call(arguments, 1);
-	}
-
-	var curNode = undefined;
+	var cur = undefined;
 	var append = false;
 
 	s.split('').forEach(function(c) {
 	    switch(c) {
 	    case '(':
-		var newNode = new Node(curNode);
-		if(curNode) {
-		    curNode.children.push(newNode);
+		var newNode = [cur];
+		if(cur) {
+		    cur.push(newNode);
 		}
-		curNode = newNode;
-		console.log('make a new node', curNode);
+		cur = newNode;
 		append = false;
 		break;
 	    case ')':
-		if(curNode.parent) {
-		    var oldNode = curNode;
-		    curNode = curNode.parent;
-		    delete oldNode.parent; // we don't need this anymore and it is a circular reference
+		if(cur[0]) {
+		    var old = cur;
+		    cur = cur[0];
+		    old.shift(); // get rid of the old parent reference
 		}
-		console.log('move up a level');
 		append = false;
 		break;
 	    default:
 		if(c.match(/[ ]/)) {
-		    console.log('skip whitespace');
 		    append = false; // start a new token
 		    break;
 		}
-		console.log('read a non-whitespace char');
-		append ? curNode.children[curNode.children.length - 1] += c : curNode.children.push(c);
+		append ? cur[cur.length - 1] += c : cur.push(c);
 		append = true;
 		break;
 	    }
 	});
-	return curNode;
+	cur.shift();
+	return cur;
     };
-
-    r7rs.
 
     // Find one level of identifiers and s-expressions
     r7rs.superTokenize = function superTokenize(exp) {
