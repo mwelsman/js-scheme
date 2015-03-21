@@ -65,10 +65,9 @@
     };
 
     /*
-     * Interpret a single identifier as a global, number, or string
-     * TODO: add more possible values
+     * Interpret a single token as a global, number, or string
      */
-    function _interpretIdentifier(identifier, functionContext, argIndex) {
+    function _interpretToken(identifier, functionContext, argIndex) {
 	// FIXME: have a better system for built-ins that use different evaluation
 	if((functionContext === 'define' || functionContext === 'set!') && argIndex === 0) {
 	    return identifier;
@@ -84,13 +83,17 @@
      * Constructs an AST out of a string and then evaluates it
      */
     r7rs.eval = function eval(str) {
+	// Can just be a single token
+	if(str[0] !== '(') {
+	    return _interpretToken(str, str, 0);
+	}
 	var tree = r7rs.tree(str);
 
 	return (function recursiveEval(list) {
 	    var fn = list[0];
 	    var args = list.slice(1).map(function(arg, index, array) {
 		return Array.isArray(arg) ?  recursiveEval(arg)
-		    : _interpretIdentifier(arg, fn, index);
+		    : _interpretToken(arg, fn, index);
 	    });
 	    return r7rs.builtIns[list[0]].apply(null, args);
 	})(tree);
