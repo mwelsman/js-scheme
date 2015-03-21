@@ -23,17 +23,45 @@
 	};
     };
 
+    r7rs.globalContext = {
+    };
+
     r7rs.builtIns = {
-	'+': reduceArgs(function add (sum, n) { return sum + Number(n); }),
-	'-': reduceArgs(function add (sum, n) { return sum - Number(n); }),
-	'*': reduceArgs(function add (sum, n) { return sum * Number(n); }),
-	'/': reduceArgs(function add (sum, n) { return sum / Number(n); }),
-	'print': console.log.bind(console)
+	'+': reduceArgs(function add (sum, n) { return sum + n; }),
+	'-': reduceArgs(function add (sum, n) { return sum - n; }),
+	'*': reduceArgs(function add (sum, n) { return sum * n; }),
+	'/': reduceArgs(function add (sum, n) { return sum / n; }),
+	'print': console.log.bind(console),
+	'define': function defineBuiltIn (target, value) {
+	    if(arguments.length !== 2) {
+		throw 'Wrong number of arguments';
+	    }
+	    if(r7rs.globalContext[target]) {
+		throw 'Cannot redefine existing global';
+	    }
+	    r7rs.globalContext[target] = value;
+	}
     };
 
     r7rs.isIdentifier = function isIdentifier(s) {
 	return r7rs.regex.identifier.exec(s) !== null;
     };
+
+    /*
+     * Interpret a single identifier as a global, number, or string
+     * TODO: add more possible values
+     */
+    function _interpretIdentifier(identifier, functionContext, argIndex) {
+	// FIXME: have a better system for built-ins that use different evaluation
+	if(functionContext === 'define' && argIndex === 0) {
+	    return identifier;
+	} else if(r7rs.globalContext[identifier]) {
+	    return r7rs.globalContext[identifier];
+	} else {
+	    // Perform literal conversion. Currently only number or string
+	    return Number(identifier[0]) ? Number(identifier): identifier;
+	}
+    }
 
     /*
      * Constructs an AST out of a string and then evaluates it
@@ -42,13 +70,10 @@
 	var tree = r7rs.tree(str);
 
 	return (function recursiveEval(list) {
-	    var args = list.slice(1).map(function convert(item) {
-		if (Array.isArray(item)) {
-		    return recursiveEval(item);
-		} else {
-		    // Perform number conversion
-		    return Number(item[0]) ? Number(item): item;
-		}
+	    var fn = list[0];
+	    var args = list.slice(1).map(function(arg, index, array) {
+		return Array.isArray(arg) ?  recursiveEval(arg)
+		    : _interpretIdentifier(arg, fn, index);
 	    });
 	    return r7rs.builtIns[list[0]].apply(null, args);
 	})(tree);
