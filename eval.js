@@ -40,6 +40,17 @@
 		throw 'Cannot redefine existing global';
 	    }
 	    r7rs.globalContext[target] = value;
+	    return value;
+	},
+	'set!': function setBuiltIn (target, value) {
+	    if(arguments.length !== 2) {
+		throw 'Wrong number of arguments';
+	    }
+	    if(!r7rs.globalContext.hasOwnProperty(target)) {
+		throw 'Must define global before it can be set';
+	    }
+	    r7rs.globalContext[target] = value;
+	    return value;
 	}
     };
 
@@ -53,7 +64,7 @@
      */
     function _interpretIdentifier(identifier, functionContext, argIndex) {
 	// FIXME: have a better system for built-ins that use different evaluation
-	if(functionContext === 'define' && argIndex === 0) {
+	if((functionContext === 'define' || functionContext === 'set!') && argIndex === 0) {
 	    return identifier;
 	} else if(r7rs.globalContext[identifier]) {
 	    return r7rs.globalContext[identifier];
