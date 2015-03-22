@@ -110,6 +110,10 @@
 		    return undefined;
 		}
 	    } else {
+		if(!r7rs.builtIns[list[0]]) {
+		    throw 'Invoked unknown function: ' + list[0];
+		}
+
 		var args = list.slice(1).map(evalOrRecurse);
 		return r7rs.builtIns[list[0]].apply(context, args);
 	    }
