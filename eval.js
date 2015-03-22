@@ -96,12 +96,17 @@
 		return Array.isArray(arg) ?  recursiveEval(arg)
 		    : _interpretToken(arg, fn, index, context);
 	    }
-	    // FIXME: define doesn't work quite right. How does it
-	    //        relate to the global context?
+
+	    // Define is a base special form
 	    if(fn === 'define') {
 		var name = list[1], value = list[2];
 
-		context[list[1]] = r7rs.eval(list[2]);
+		if(Array.isArray(value)) {
+		    throw 'Defining procedures is not yet implemented';
+		} else {
+		    context[list[1]] = r7rs.eval(list[2]);
+		}
+
 		// continue execution
 		var results = list.slice(3).map(evalOrRecurse);
 		if(results) {
