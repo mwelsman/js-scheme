@@ -44,16 +44,6 @@
 	'*': reduceArgs(function add (sum, n) { return sum * n; }),
 	'/': reduceArgs(function add (sum, n) { return sum / n; }),
 	'print': printFunction,
-	'define': function defineBuiltIn (target, value) {
-	    if(arguments.length !== 2) {
-		throw 'Wrong number of arguments';
-	    }
-	    if(this[target]) {
-		throw 'Cannot redefine existing global';
-	    }
-	    this[target] = value;
-	    return value;
-	},
 	'set!': function setBuiltIn (target, value) {
 	    if(arguments.length !== 2) {
 		throw 'Wrong number of arguments';
@@ -106,6 +96,8 @@
 		return Array.isArray(arg) ?  recursiveEval(arg)
 		    : _interpretToken(arg, fn, index, context);
 	    }
+	    // FIXME: define doesn't work quite right. How does it
+	    //        relate to the global context?
 	    if(fn === 'define') {
 		var name = list[1], value = list[2];
 
@@ -163,4 +155,7 @@
 	cur.shift();
 	return cur;
     };
-})(window, 'r7rs', console.log.bind(console));
+})(window, 'r7rs', function printToTerminal () {
+    var term = window.jQuery.terminal.active();
+    term.echo.apply(term, arguments);
+});
