@@ -23,7 +23,19 @@
 	};
     };
 
+    /*
+     * The global context. Defines go here
+     */
     r7rs.globalContext = {
+    };
+
+    /*
+     * Create a new execution context
+     */
+    r7rs.createContext = function (existingContext) {
+	var f = new Function();
+	f.prototype = existingContext || Object;
+	return new f();
     };
 
     r7rs.builtIns = {
@@ -36,27 +48,21 @@
 	    if(arguments.length !== 2) {
 		throw 'Wrong number of arguments';
 	    }
-	    if(r7rs.globalContext[target]) {
+	    if(this[target]) {
 		throw 'Cannot redefine existing global';
 	    }
-	    r7rs.globalContext[target] = value;
+	    this[target] = value;
 	    return value;
 	},
 	'set!': function setBuiltIn (target, value) {
 	    if(arguments.length !== 2) {
 		throw 'Wrong number of arguments';
 	    }
-	    if(!r7rs.globalContext.hasOwnProperty(target)) {
+	    if(!this.hasOwnProperty(target)) {
 		throw 'Must define global before it can be set';
 	    }
-	    r7rs.globalContext[target] = value;
+	    this[target] = value;
 	    return value;
-	},
-	'globals': function printGlobals() {
-	    if(arguments.length) {
-		throw 'Wrong number of arguments (expected 0)';
-	    }
-	    return JSON.stringify(r7rs.globalContext);
 	}
     };
 
@@ -67,12 +73,14 @@
     /*
      * Interpret a single token as a global, number, or string
      */
-    function _interpretToken(identifier, functionContext, argIndex) {
-	// FIXME: have a better system for built-ins that use different evaluation
-	if((functionContext === 'define' || functionContext === 'set!') && argIndex === 0) {
+    function _interpretToken(identifier, fn, argIndex, context) {
+	// special 'context' utility keyword
+	if(identifier === 'context') {
+	    return JSON.stringify(context);
+	} else if((fn === 'define' || fn === 'set!') && argIndex === 0) {
 	    return identifier;
-	} else if(r7rs.globalContext[identifier]) {
-	    return r7rs.globalContext[identifier];
+	} else if(context[identifier]) {
+	    return context[identifier];
 	} else {
 	    // Perform literal conversion. Currently only number or string
 	    return Number(identifier[0]) ? Number(identifier): identifier;
@@ -82,20 +90,37 @@
     /*
      * Constructs an AST out of a string and then evaluates it
      */
-    r7rs.eval = function eval(str) {
+    r7rs.eval = function eval(str, context) {
+	context = context || r7rs.globalContext;
+
 	// Can just be a single token
 	if(str[0] !== '(') {
-	    return _interpretToken(str, str, 0);
+	    return _interpretToken(str, str, 0, context);
 	}
 	var tree = r7rs.tree(str);
 
 	return (function recursiveEval(list) {
 	    var fn = list[0];
-	    var args = list.slice(1).map(function(arg, index, array) {
+
+	    function evalOrRecurse(arg, index, array) {
 		return Array.isArray(arg) ?  recursiveEval(arg)
-		    : _interpretToken(arg, fn, index);
-	    });
-	    return r7rs.builtIns[list[0]].apply(null, args);
+		    : _interpretToken(arg, fn, index, context);
+	    }
+	    if(fn === 'define') {
+		var name = list[1], value = list[2];
+
+		context[list[1]] = r7rs.eval(list[2]);
+		// continue execution
+		var results = list.slice(3).map(evalOrRecurse);
+		if(results) {
+		    return results[results.length -1];
+		} else {
+		    return undefined;
+		}
+	    } else {
+		var args = list.slice(1).map(evalOrRecurse);
+		return r7rs.builtIns[list[0]].apply(context, args);
+	    }
 	})(tree);
     };
 
