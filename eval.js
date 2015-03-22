@@ -78,8 +78,46 @@
 	}
     }
 
+    function _treeEval(list) {
+	var fn = list[0];
+
+	function evalOrRecurse(arg, index, array) {
+	    return Array.isArray(arg) ?  _treeEval(arg)
+		: _interpretToken(arg, fn, index, context);
+	}
+
+	// Define is a base special form
+	if(fn === 'define') {
+	    var names = list[1], value = list[2];
+
+	    if(Array.isArray(names)) {
+		// Store a procedure to be evaluated
+		var name = names[0];
+		var procedureArgs = names.slice(1);
+		var procedure = value;
+
+		context[name] = {
+		    procedure: procedure,
+		    arguments: procedureArgs
+		};
+	    } else {
+		// Evaluate and store a value
+		context[list[1]] = _treeEval(list[2]);
+	    }
+	    return undefined;
+	} else {
+	    if(!r7rs.builtIns[list[0]]) {
+		throw 'Not a function: ' + list[0];
+	    }
+
+	    var args = list.slice(1).map(evalOrRecurse);
+	    return r7rs.builtIns[list[0]].apply(context, args);
+	}
+    };
+
     /*
      * Constructs an AST out of a string and then evaluates it
+     * Use the global context if no context is provided
      */
     r7rs.eval = function eval(str, context) {
 	context = context || r7rs.globalContext;
@@ -90,42 +128,7 @@
 	}
 	var tree = r7rs.tree(str);
 
-	return (function recursiveEval(list) {
-	    var fn = list[0];
-
-	    function evalOrRecurse(arg, index, array) {
-		return Array.isArray(arg) ?  recursiveEval(arg)
-		    : _interpretToken(arg, fn, index, context);
-	    }
-
-	    // Define is a base special form
-	    if(fn === 'define') {
-		var names = list[1], value = list[2];
-
-		if(Array.isArray(names)) {
-		    // Store a procedure to be evaluated
-		    var name = names[0];
-		    var procedureArgs = names.slice(1);
-		    var procedure = value;
-
-		    context[name] = {
-			procedure: procedure,
-			arguments: procedureArgs
-		    };
-		} else {
-		    // Evaluate and store a value
-		    context[list[1]] = recursiveEval(list[2]);
-		}
-		return undefined;
-	    } else {
-		if(!r7rs.builtIns[list[0]]) {
-		    throw 'Not a function: ' + list[0];
-		}
-
-		var args = list.slice(1).map(evalOrRecurse);
-		return r7rs.builtIns[list[0]].apply(context, args);
-	    }
-	})(tree);
+	return _treeEval(tree);
     };
 
     /*
