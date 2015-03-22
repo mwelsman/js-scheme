@@ -23,22 +23,6 @@
 	};
     };
 
-    /*
-     * The global context. Defines go here
-     */
-    r7rs.globalContext = {
-	pi: 3.14159
-    };
-
-    /*
-     * Create a new execution context
-     */
-    r7rs.createContext = function (existingContext) {
-	var f = new Function();
-	f.prototype = existingContext || Object;
-	return new f();
-    };
-
     r7rs.builtIns = {
 	'+': reduceArgs(function add (sum, n) { return sum + n; }),
 	'-': reduceArgs(function add (sum, n) { return sum - n; }),
@@ -57,38 +41,56 @@
 	}
     };
 
-    r7rs.isIdentifier = function isIdentifier(s) {
-	return r7rs.regex.identifier.exec(s) !== null;
+    /*
+     * Create a new execution context
+     */
+    function _createContext (existingContext) {
+	var f = new Function();
+	f.prototype = existingContext || Object;
+	return new f();
     };
+
+    /*
+     * The global context. Extends the built-in context
+     */
+    r7rs.globalContext = _createContext(r7rs.builtIns);
+    // Put some stuff in the global context by default
+    r7rs.globalContext.pi = 3.14159;
 
     /*
      * Interpret a single token as a global, number, or string
      */
-    function _interpretToken(identifier, fn, argIndex, context) {
+    function _interpretIdentifier(identifier, context) {
 	// special 'context' utility keyword
 	if(identifier === 'context') {
-	    return JSON.stringify(context);
-	} else if((fn === 'define' || fn === 'set!') && argIndex === 0) {
-	    return identifier;
+	    return '"' + JSON.stringify(context) + '"';
 	} else if(context[identifier]) {
 	    return context[identifier];
-	} else {
-	    // Perform literal conversion. Currently only number or string
-	    return Number(identifier[0]) ? Number(identifier): identifier;
+	} else { // literals
+	    // N.B.: only support for numbers currently
+	    return Number(identifier[0]);
 	}
     }
 
-    function _treeEval(list) {
-	var fn = list[0];
-
-	function evalOrRecurse(arg, index, array) {
-	    return Array.isArray(arg) ?  _treeEval(arg)
-		: _interpretToken(arg, fn, index, context);
+    function _treeEval(node, context) {
+	// Single elements are considered identifiers
+	if(!Array.isArray(node)) {
+	    return _interpretIdentifier(node, context);
 	}
+	// Lists are not preceded by function names to be applied
+	if(node.type === 'list') {
+	    return node.map(function(child) { _interpretIdentifier(child, context); });
+	}
+	// Remaining case: s-expression with function to be applied to remaining children
+	if(!node.length) {
+	    throw 'Cannot execute empty expression!';
+	}
+
+	var fn = node[0];
 
 	// Define is a base special form
 	if(fn === 'define') {
-	    var names = list[1], value = list[2];
+	    var names = node[1], value = node[2];
 
 	    if(Array.isArray(names)) {
 		// Store a procedure to be evaluated
@@ -102,16 +104,22 @@
 		};
 	    } else {
 		// Evaluate and store a value
-		context[list[1]] = _treeEval(list[2]);
+		context[node[1]] = _treeEval(node[2]);
 	    }
 	    return undefined;
 	} else {
-	    if(!r7rs.builtIns[list[0]]) {
-		throw 'Not a function: ' + list[0];
+	    if(!context[fn]) {
+		throw 'Unknown function name: ' + fn;
 	    }
-
-	    var args = list.slice(1).map(evalOrRecurse);
-	    return r7rs.builtIns[list[0]].apply(context, args);
+	    if(typeof context[fn] !== 'function') {
+		throw 'Tried to apply a non-function: ' + fn;
+	    }
+	    // Prepare children
+	    var args = node.slice(1).map(function(child) {
+		return _treeEval(child, context);
+	    });
+	    // Apply the function
+	    return context[fn].apply(context, args);
 	}
     };
 
@@ -121,14 +129,8 @@
      */
     r7rs.eval = function eval(str, context) {
 	context = context || r7rs.globalContext;
-
-	// Can just be a single token
-	if(str[0] !== '(') {
-	    return _interpretToken(str, str, 0, context);
-	}
 	var tree = r7rs.tree(str);
-
-	return _treeEval(tree);
+	return _treeEval(tree, context);
     };
 
     /*
@@ -138,6 +140,10 @@
     r7rs.tree = function tree(s) {
 	var cur = undefined;
 	var append = false;
+
+	if(s[0] !== '(') {
+	    return s;
+	}
 
 	s.split('').forEach(function(c) {
 	    switch(c) {
