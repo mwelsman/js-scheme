@@ -100,9 +100,9 @@
 
 	    // Define is a base special form
 	    if(fn === 'define') {
-		var name = list[1], value = list[2];
+		var names = list[1], value = list[2];
 
-		if(Array.isArray(value)) {
+		if(Array.isArray(names)) {
 		    throw 'Defining procedures is not yet implemented';
 		} else {
 		    context[list[1]] = r7rs.eval(list[2]);
