@@ -3,7 +3,7 @@
  * http://trac.sacrideo.us/wg/wiki/R7RSHomePage
  */
 
-(function (context, globalName) {
+(function (context, globalName, printFunction) {
     var r7rs = {
 	regex: {
 	    // Identifiers are case insensitive. They may begin with the letters a-z
@@ -43,7 +43,7 @@
 	'-': reduceArgs(function add (sum, n) { return sum - n; }),
 	'*': reduceArgs(function add (sum, n) { return sum * n; }),
 	'/': reduceArgs(function add (sum, n) { return sum / n; }),
-	'print': console.log.bind(console),
+	'print': printFunction,
 	'define': function defineBuiltIn (target, value) {
 	    if(arguments.length !== 2) {
 		throw 'Wrong number of arguments';
@@ -163,4 +163,4 @@
 	cur.shift();
 	return cur;
     };
-})(window, 'r7rs');
+})(window, 'r7rs', console.log.bind(console));
