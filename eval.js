@@ -105,21 +105,21 @@
 		if(Array.isArray(names)) {
 		    // Store a procedure to be evaluated
 		    var name = names[0];
-		    var args = names.slice(1);
+		    var procedureArgs = names.slice(1);
 		    var procedure = value;
 
 		    context[name] = {
 			procedure: procedure,
-			arguments: args
+			arguments: procedureArgs
 		    };
 		} else {
 		    // Evaluate and store a value
-		    context[list[1]] = r7rs.eval(list[2]);
+		    context[list[1]] = recursiveEval(list[2]);
 		}
 		return undefined;
 	    } else {
 		if(!r7rs.builtIns[list[0]]) {
-		    throw 'Invoked unknown function: ' + list[0];
+		    throw 'Not a function: ' + list[0];
 		}
 
 		var args = list.slice(1).map(evalOrRecurse);
