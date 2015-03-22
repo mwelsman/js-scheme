@@ -1,13 +1,10 @@
 <html>
   <head>
     <link rel="stylesheet" href="bower_components/jquery.terminal/css/jquery.terminal.css">
+    <link rel="stylesheet" href="bower_components/jqTree/jqtree.css">
     <style>
       html {
 	  background-color: black;
-      }
-      div#term {
-	  border: 1px solid gray;
-	  margin: 30 auto;
       }
 
       .terminal, .cmd {
@@ -17,16 +14,52 @@
       .terminal .terminal-output div div, .cmd .prompt, .cmd span {
 	  line-height: 22px;
       }
+
+      #content-container {
+	  margin: 30px 80px;
+      }
+
+      #term, #environment-tree {
+	  border: 1px solid gray;
+	  float: left;
+      }
+
+      #environment-tree {
+	  min-width: 400px;
+	  min-height: 800px;
+	  margin-left: 10px;
+	  padding: 10px;
+      }
+
+      ul.jqtree-tree .jqtree-toggler, .jqtree-tree .jqtree-title, ul.jqtree-tree .jqtree-toggler:hover {
+	  color: white;
+      }
+
+      .jqtree-tree .jqtree-title {
+	  font-family: FreeMono, monospace;
+      }
+
+      ul.jqtree-tree li.jqtree-selected > .jqtree-element, ul.jqtree-tree li.jqtree-selected > .jqtree-element:hover {
+	  background: none;
+	  border: 1px solid gray;
+	  margin-top: 2px:
+      }
     </style>
   </head>
   <body>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/jqTree/tree.jquery.js"></script>
     <script src="bower_components/jquery.terminal/js/jquery.terminal-0.8.8.js"></script>
     <script src="eval.js"></script>
     <script src="term.js"></script>
 
-    <div id="term">
-      <!-- terminal will be injected here -->
+    <div id="content-container">
+      <div id="term">
+	<!-- terminal will be injected here -->
+      </div>
+      <div id="environment-tree">
+	<!-- tree representation of environment will be injected here -->
+      </div>
     </div>
   </body>
 </html>

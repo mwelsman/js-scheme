@@ -27,6 +27,7 @@
      * The global context. Defines go here
      */
     r7rs.globalContext = {
+	pi: 3.14159
     };
 
     /*
