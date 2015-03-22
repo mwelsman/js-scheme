@@ -1,19 +1,3 @@
-var cannedData = [
-    {
-	label: 'node1',
-	children: [
-	    { label: 'child1' },
-	    { label: 'child2' }
-	]
-    },
-    {
-	label: 'node2',
-	children: [
-	    { label: 'child3' }
-	]
-    }
-];
-
 jQuery(function($, undefined) {
     function contextToTreeRepresentation(context) {
 	var data = [];
@@ -21,7 +5,7 @@ jQuery(function($, undefined) {
 	    data.push({
 		label: p, // + ': ' + r7rs.globalContext[p],
 		children: [{
-		    label: r7rs.globalContext[p]
+		    label: JSON.stringify(r7rs.globalContext[p])
 		}]
 	    });
 	}

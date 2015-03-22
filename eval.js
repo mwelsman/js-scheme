@@ -103,18 +103,20 @@
 		var names = list[1], value = list[2];
 
 		if(Array.isArray(names)) {
-		    throw 'Defining procedures is not yet implemented';
+		    // Store a procedure to be evaluated
+		    var name = names[0];
+		    var args = names.slice(1);
+		    var procedure = value;
+
+		    context[name] = {
+			procedure: procedure,
+			arguments: args
+		    };
 		} else {
+		    // Evaluate and store a value
 		    context[list[1]] = r7rs.eval(list[2]);
 		}
-
-		// continue execution
-		var results = list.slice(3).map(evalOrRecurse);
-		if(results) {
-		    return results[results.length -1];
-		} else {
-		    return undefined;
-		}
+		return undefined;
 	    } else {
 		if(!r7rs.builtIns[list[0]]) {
 		    throw 'Invoked unknown function: ' + list[0];
