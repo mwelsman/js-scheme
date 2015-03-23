@@ -165,10 +165,12 @@
 
 	var fn = node[0];
 
+	/* Special forms */
+
 	// Define is a base special form. It can either map a single value onto a variable
 	// name, or it can map a sequence of instructions onto a procedure name and execution
 	// context defined by the arguments list.
-	if(fn === 'define') {
+	if (fn === 'define') {
 	    var names = node[1];
 	    var procedure = node[2];
 
@@ -195,6 +197,10 @@
 		context[node[1]] = _treeEval(procedure, context);
 	    }
 	    return undefined;
+	} else if (fn === 'cond') {
+	    throw '"cond" special form is not yet implemented';
+	} else if (fn === 'if') {
+	    throw '"if" special form is not yet implemented';
 	} else {
 	    if(!context[fn]) {
 		throw 'Unknown function name: ' + fn;
