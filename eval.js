@@ -27,18 +27,7 @@
 	'+': reduceArgs(function add (sum, n) { return sum + n; }),
 	'-': reduceArgs(function add (sum, n) { return sum - n; }),
 	'*': reduceArgs(function add (sum, n) { return sum * n; }),
-	'/': reduceArgs(function add (sum, n) { return sum / n; }),
-	'print': printFunction,
-	'set!': function setBuiltIn (target, value) {
-	    if(arguments.length !== 2) {
-		throw 'Wrong number of arguments';
-	    }
-	    if(!this.hasOwnProperty(target)) {
-		throw 'Must define global before it can be set';
-	    }
-	    this[target] = value;
-	    return value;
-	}
+	'/': reduceArgs(function add (sum, n) { return sum / n; })
     };
 
     /*
@@ -88,23 +77,33 @@
 
 	var fn = node[0];
 
-	// Define is a base special form
+	// Define is a base special form. It can either map a single value onto a variable
+	// name, or it can map a sequence of instructions onto a procedure name and execution
+	// context defined by the arguments list.
 	if(fn === 'define') {
-	    var names = node[1], value = node[2];
+	    var names = node[1];
+	    var procedure = node[2];
 
 	    if(Array.isArray(names)) {
 		// Store a procedure to be evaluated
 		var name = names[0];
 		var procedureArgs = names.slice(1);
-		var procedure = value;
+		// function bind to new context
+		var newFn = function () {
+		    // the function's context needs to have the argument values injected
+		    var fnContext = _createContext(context);
+		    procedureArgs.forEach(function(arg, index) {
+			fnContext[arg] = arguments[index];
+		    });
 
-		context[name] = {
-		    procedure: procedure,
-		    arguments: procedureArgs
+		    _treeEval(procedure, fnContext);
 		};
+		newFn.name = name;
+		newFn.args = procedureArgs;
+		context[name] = newFn;
 	    } else {
-		// Evaluate and store a value
-		context[node[1]] = _treeEval(node[2]);
+		// Fully evaluate and store in the context
+		context[node[1]] = _treeEval(procedure, context);
 	    }
 	    return undefined;
 	} else {
