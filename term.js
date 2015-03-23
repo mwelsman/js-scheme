@@ -2,10 +2,12 @@ jQuery(function($, undefined) {
     function contextToTreeRepresentation(context) {
 	var data = [];
 	for(p in r7rs.globalContext) {
+	    var value = r7rs.globalContext[p];
+
 	    data.push({
 		label: p, // + ': ' + r7rs.globalContext[p],
 		children: [{
-		    label: JSON.stringify(r7rs.globalContext[p])
+		    label: typeof value === 'function' ? 'procedure' : JSON.stringify(value)
 		}]
 	    });
 	}
