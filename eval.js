@@ -50,14 +50,30 @@
      * Interpret a single token as a global, number, or string
      */
     function _interpretIdentifier(identifier, context) {
-	// special 'context' utility keyword
-	if(identifier === 'context') {
-	    return '"' + JSON.stringify(context) + '"';
-	} else if(context[identifier]) {
-	    return context[identifier];
+	if (context[identifier] !== undefined) {
+	    var cVar  = context[identifier];
+
+	    if (typeof cVar === 'function') {
+		if(r7rs.builtIns.hasOwnProperty(identifier)) {
+		    return 'Built-in procedure (JavaScript):\n' + cVar;
+		} else {
+		    return 'User-defined procedure "' + cVar.name +
+			'"\n  Arguments: ' + cVar.args +
+			'\n  Procedure: ' + JSON.stringify(cVar.procedure);
+		}
+	    } else {
+		return cVar;
+	    }
 	} else { // literals
 	    // N.B.: only support for numbers currently
-	    return Number(identifier[0]);
+	    if(identifier === 'NaN') {
+		return NaN;
+	    }
+	    var result = Number(identifier[0]);
+	    if(isNaN(result)) {
+		throw 'Unknown identifier: ' + identifier;
+	    }
+	    return result;
 	}
     }
 
@@ -100,6 +116,7 @@
 		};
 		newFn.name = name;
 		newFn.args = procedureArgs;
+		newFn.procedure = procedure;
 		context[name] = newFn;
 	    } else {
 		// Fully evaluate and store in the context
