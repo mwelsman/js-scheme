@@ -25,9 +25,20 @@
 
     r7rs.builtIns = {
 	'+': reduceArgs(function add (sum, n) { return sum + n; }),
-	'-': reduceArgs(function add (sum, n) { return sum - n; }),
-	'*': reduceArgs(function add (sum, n) { return sum * n; }),
-	'/': reduceArgs(function add (sum, n) { return sum / n; })
+	'-': reduceArgs(function subtract (sum, n) { return sum - n; }),
+	'*': reduceArgs(function multiply (sum, n) { return sum * n; }),
+	'/': reduceArgs(function divide (sum, n) { return sum / n; }),
+	'=': function equals () {
+	    if(arguments.length < 2) {
+		throw 'Requires 2 or more arguments';
+	    }
+	    var v = arguments[0];
+	    var equal = true;
+	    Array.prototype.slice.call(arguments).forEach(function (item) {
+		if(item !== v) { equal = false; }
+	    });
+	    return equal;
+	}
     };
 
     /*
@@ -47,7 +58,7 @@
     r7rs.globalContext.pi = 3.14159;
 
     /*
-     * Interpret a single token as a global, number, or string
+     * Interpret a single token as a global, number, string, or boolean
      */
     function _interpretIdentifier(identifier, context) {
 	if (context[identifier] !== undefined) {
@@ -65,6 +76,12 @@
 		return cVar;
 	    }
 	} else { // literals
+	    if (identifier === ':t') {
+		return true;
+	    }
+	    if (identifier === ':f') {
+		return false;
+	    }
 	    // N.B.: only support for numbers currently
 	    if(identifier === 'NaN') {
 		return NaN;
