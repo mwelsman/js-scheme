@@ -29,7 +29,7 @@
 	'*': reduceArgs(function multiply (sum, n) { return sum * n; }),
 	'/': reduceArgs(function divide (sum, n) { return sum / n; }),
 	'=': function equals () {
-	    if(arguments.length < 2) {
+	    if (arguments.length < 2) {
 		throw 'Requires 2 or more arguments';
 	    }
 	    var v = arguments[0];
@@ -38,6 +38,61 @@
 		if(item !== v) { equal = false; }
 	    });
 	    return equal;
+	},
+	'>': function greaterThan(a, b) {
+	    if (arguments.length !== 2) {
+		throw 'Requires exactly 2 arguments';
+	    }
+	    if (isNaN(a) || isNaN(b)) {
+		throw 'Both arguments must be numbers';
+	    }
+	    return a > b;
+	},
+	'<': function lessThan(a, b) {
+	    if (arguments.length !== 2) {
+		throw 'Requires exactly 2 arguments';
+	    }
+	    if (isNaN(a) || isNaN(b)) {
+		throw 'Both arguments must be numbers';
+	    }
+	    return a < b;
+	},
+	'and': function and() {
+	    // could be implemented from =
+	    if (arguments.length < 2) {
+		throw 'Requires 2 or more arguments';
+	    }
+	    var accum = true;
+	    Array.prototype.slice.call(arguments).forEach(function (item) {
+		if(typeof item !== 'boolean') {
+		    throw 'Arguments must be booleans';
+		}
+		if (item !== true) { accum = false; }
+	    });
+	    return accum;
+	},
+	'or': function or() {
+	    // could be implemented from =
+	    if (arguments.length < 2) {
+		throw 'Requires 2 or more arguments';
+	    }
+	    var accum = false;
+	    Array.prototype.slice.call(arguments).forEach(function (item) {
+		if(typeof item !== 'boolean') {
+		    throw 'Arguments must be booleans';
+		}
+		if (item === true) { accum = true; }
+	    });
+	    return accum;
+	},
+	'not': function not() {
+	    if (arguments.length !== 1) {
+		throw 'Requires one argument';
+	    }
+	    if(typeof arguments[0] !== 'boolean') {
+		throw 'Requires a single boolean as an argument';
+	    }
+	    return !arguments[0];
 	}
     };
 
