@@ -108,11 +108,11 @@
 		var newFn = function () {
 		    // the function's context needs to have the argument values injected
 		    var fnContext = _createContext(context);
+		    var fnArguments = arguments;
 		    procedureArgs.forEach(function(arg, index) {
-			fnContext[arg] = arguments[index];
+			fnContext[arg] = fnArguments[index];
 		    });
-
-		    _treeEval(procedure, fnContext);
+		    return _treeEval(procedure, fnContext);
 		};
 		newFn.name = name;
 		newFn.args = procedureArgs;
