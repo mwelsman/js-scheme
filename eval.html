@@ -63,6 +63,15 @@
     <script src="eval.js"></script>
     <script src="term.js"></script>
 
+    <script id="scheme-extensions" type="text/js-scheme">
+      (define (<= a b) (cond ((< a b) :t) ((= a b) :t) (else :f))
+    </script>
+
+    <script>
+      // Evaluate extensions
+      r7rs.eval($('#scheme-extensions').html().trim());
+    </script>
+
     <div id="content-container">
       <div id="term">
 	<!-- terminal will be injected here -->
