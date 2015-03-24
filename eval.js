@@ -141,7 +141,7 @@
 	    if(identifier === 'NaN') {
 		return NaN;
 	    }
-	    var result = Number(identifier[0]);
+	    var result = Number(identifier);
 	    if(isNaN(result)) {
 		throw 'Unknown identifier: ' + identifier;
 	    }
