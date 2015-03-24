@@ -65,11 +65,14 @@
 
     <script id="scheme-extensions" type="text/js-scheme">
       (define (<= a b) (cond ((< a b) :t) ((= a b) :t) (else :f))
+      (define (>= a b) (cond ((> a b) :t) ((= a b) :t) (else :f))
     </script>
 
     <script>
       // Evaluate extensions
-      r7rs.eval($('#scheme-extensions').html().trim());
+      $('#scheme-extensions').html().split('\n').forEach(function (expr) {
+	  r7rs.eval(expr.trim());
+      });
     </script>
 
     <div id="content-container">
