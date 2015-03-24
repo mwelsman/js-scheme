@@ -17,15 +17,17 @@
     };
     context[globalName] = r7rs;
 
-    function reduceArgs(reduceFunction) {
+    function reduceArgs(reduceFunction, initialValue) {
 	return function () {
-	    return Array.prototype.slice.call(arguments).reduce(reduceFunction);
+	    return Array.prototype.slice.call(arguments)
+		.reduce(reduceFunction, initialValue);
 	};
     };
 
     r7rs.builtIns = {
 	'+': reduceArgs(function add (sum, n) { return sum + n; }),
-	'-': reduceArgs(function subtract (sum, n) { return sum - n; }),
+	// Provide initial value 0 to subtract for allow expressions like (- 2)
+	'-': reduceArgs(function subtract (sum, n) { return sum - n; }, 0),
 	'*': reduceArgs(function multiply (sum, n) { return sum * n; }),
 	'/': reduceArgs(function divide (sum, n) { return sum / n; }),
 	'=': function equals () {
