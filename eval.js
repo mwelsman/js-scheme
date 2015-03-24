@@ -1,10 +1,9 @@
 /*
- * Implementation of an interpreter for r7rs scheme
- * http://trac.sacrideo.us/wg/wiki/R7RSHomePage
+ * Scheme interpreter based on SICP
  */
 
 (function (context, globalName, printFunction) {
-    var r7rs = {
+    var jsScheme = {
 	regex: {
 	    // Identifiers are case insensitive. They may begin with the letters a-z
 	    // or a character from the extended set, !$%&*+-./:<=>?@^_~
@@ -15,7 +14,7 @@
 
 	}
     };
-    context[globalName] = r7rs;
+    context[globalName] = jsScheme;
 
     function reduceArgs(reduceFunction, initialValue) {
 	return function () {
@@ -24,12 +23,12 @@
 	};
     };
 
-    r7rs.builtIns = {
-	'+': reduceArgs(function add (sum, n) { return sum + n; }),
+    jsScheme.builtIns = {
+	'+': reduceArgs(function add (sum, n) { return sum + n; }, 0),
 	// Provide initial value 0 to subtract for allow expressions like (- 2)
 	'-': reduceArgs(function subtract (sum, n) { return sum - n; }, 0),
-	'*': reduceArgs(function multiply (sum, n) { return sum * n; }),
-	'/': reduceArgs(function divide (sum, n) { return sum / n; }),
+	'*': reduceArgs(function multiply (sum, n) { return sum * n; }, 1),
+	'/': reduceArgs(function divide (sum, n) { return sum / n; }, 1),
 	'=': function equals () {
 	    if (arguments.length < 2) {
 		throw 'Requires 2 or more arguments';
@@ -110,9 +109,9 @@
     /*
      * The global context. Extends the built-in context
      */
-    r7rs.globalContext = _createContext(r7rs.builtIns);
+    jsScheme.globalContext = _createContext(jsScheme.builtIns);
     // Put some stuff in the global context by default
-    r7rs.globalContext.pi = 3.14159;
+    jsScheme.globalContext.pi = 3.14159;
 
     /*
      * Interpret a single token as a global, number, string, or boolean
@@ -122,7 +121,7 @@
 	    var cVar  = context[identifier];
 
 	    if (typeof cVar === 'function') {
-		if(r7rs.builtIns.hasOwnProperty(identifier)) {
+		if(jsScheme.builtIns.hasOwnProperty(identifier)) {
 		    return 'Built-in procedure (JavaScript):\n' + cVar;
 		} else {
 		    return 'User-defined procedure "' + cVar.name +
@@ -259,9 +258,9 @@
      * Constructs an AST out of a string and then evaluates it
      * Use the global context if no context is provided
      */
-    r7rs.eval = function eval(str, context) {
-	context = context || r7rs.globalContext;
-	var tree = r7rs.tree(str);
+    jsScheme.eval = function eval(str, context) {
+	context = context || jsScheme.globalContext;
+	var tree = jsScheme.tree(str);
 	return _treeEval(tree, context);
     };
 
@@ -269,7 +268,7 @@
      * Constructs an AST out of a string consisting of numbers,
      * string literals, and potentially nested s-expressions
      */
-    r7rs.tree = function tree(s) {
+    jsScheme.tree = function tree(s) {
 	var cur = undefined;
 	var append = false;
 
@@ -311,7 +310,7 @@
 	cur.shift();
 	return cur;
     };
-})(window, 'r7rs', function printToTerminal () {
+})(window, 'jsScheme', function printToTerminal () {
     var term = window.jQuery.terminal.active();
     term.echo.apply(term, arguments);
 });

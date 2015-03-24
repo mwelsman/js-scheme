@@ -1,11 +1,11 @@
 jQuery(function($, undefined) {
     function contextToTreeRepresentation(context) {
 	var data = [];
-	for(p in r7rs.globalContext) {
-	    var value = r7rs.globalContext[p];
+	for(p in jsScheme.globalContext) {
+	    var value = jsScheme.globalContext[p];
 
 	    data.push({
-		label: p, // + ': ' + r7rs.globalContext[p],
+		label: p, // + ': ' + jsScheme.globalContext[p],
 		children: [{
 		    label: typeof value === 'function' ? 'procedure' : JSON.stringify(value)
 		}]
@@ -43,11 +43,11 @@ jQuery(function($, undefined) {
 
     $('#term').terminal(function(command, term) {
 	if (command !== '') {
-	    var result = r7rs.eval(command);
+	    var result = jsScheme.eval(command);
 	    if (result != undefined) {
 		term.echo(String(result));
 	    }
-	    refreshTreeRepresentation(r7rs.globalContext);
+	    refreshTreeRepresentation(jsScheme.globalContext);
 	}
     }, {
 	greetings: 'Scheme Interpreter',
@@ -56,5 +56,5 @@ jQuery(function($, undefined) {
 	width: 1000,
 	prompt: 'scheme> '});
 
-    refreshTreeRepresentation(r7rs.globalContext);
+    refreshTreeRepresentation(jsScheme.globalContext);
 });
