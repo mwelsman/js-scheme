@@ -277,6 +277,9 @@
 
 	s.split('').forEach(function(c) {
 	    switch(c) {
+	    case '\n':
+		// ignore
+		break;
 	    case '(':
 		var newNode = [cur];
 		if(cur) {
