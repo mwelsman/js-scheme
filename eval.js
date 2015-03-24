@@ -200,7 +200,22 @@
 	} else if (fn === 'cond') {
 	    throw '"cond" special form is not yet implemented';
 	} else if (fn === 'if') {
-	    throw '"if" special form is not yet implemented';
+	    if (node.length !== 4) {
+		throw '"if" special form requires three arguments';
+	    }
+	    var predicate = node[1];
+	    var consequent = node[2];
+	    var alternative = node[3];
+
+	    var test = _treeEval(predicate, context);
+
+	    if (test === true) {
+		return _treeEval(consequent, context);
+	    } else if (test === false) {
+		return _treeEval(alternative, context);
+	    } else {
+		throw '"if" predicate did not evaluate to a boolean';
+	    }
 	} else {
 	    if(!context[fn]) {
 		throw 'Unknown function name: ' + fn;
