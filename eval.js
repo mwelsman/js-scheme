@@ -198,7 +198,28 @@
 	    }
 	    return undefined;
 	} else if (fn === 'cond') {
-	    throw '"cond" special form is not yet implemented';
+	    var pairs = node.slice(1);
+
+	    for (var pairIndex = 0; pairIndex < pairs.length; pairIndex++) {
+		var pair = pairs[pairIndex];
+
+		if (pairIndex === pairs.length - 1 && pair[0] === 'else') {
+		    return _treeEval(pair[1], context);
+		}
+
+		if (pair.length !== 2) {
+		    throw '"cond" requires pairs of predicates and expressions';
+		}
+
+		var test = _treeEval(pair[0], context);
+
+		if (test === true) {
+		    return _treeEval(pair[1], context);
+		} else if (test !== false) {
+		    throw '"cond" predicate did not evaluate to a boolean';
+		}
+	    }
+
 	} else if (fn === 'if') {
 	    if (node.length !== 4) {
 		throw '"if" special form requires three arguments';
