@@ -220,24 +220,63 @@
 		    throw '"cond" predicate did not evaluate to a boolean';
 		}
 	    }
-
+	    throw 'Failed to evaluate "cond" conditions';
 	} else if (fn === 'if') {
-	    if (node.length !== 4) {
-		throw '"if" special form requires three arguments';
-	    }
-	    var predicate = node[1];
-	    var consequent = node[2];
-	    var alternative = node[3];
+	    return (function () {
+		if (node.length !== 4) {
+		    throw '"if" special form requires three arguments';
+		}
+		var predicate = node[1];
+		var consequent = node[2];
+		var alternative = node[3];
 
-	    var test = _treeEval(predicate, context);
+		var test = _treeEval(predicate, context);
 
-	    if (test === true) {
-		return _treeEval(consequent, context);
-	    } else if (test === false) {
-		return _treeEval(alternative, context);
-	    } else {
-		throw '"if" predicate did not evaluate to a boolean';
+		if (test === true) {
+		    return _treeEval(consequent, context);
+		} else if (test === false) {
+		    return _treeEval(alternative, context);
+		} else {
+		    throw '"if" predicate did not evaluate to a boolean';
+		}
+	    })();
+	} else if (fn === 'cons') {
+	    if (node.length < 3) {
+		return '"cons" requires 3 or more arguments';
 	    }
+
+	    var result = [];
+	    node.slice(1).forEach(function (expr) {
+		result.push(_treeEval(expr, context));
+	    });
+	    return result;
+	} else if(fn === 'cdr') {
+	    if (node.length != 2) {
+		throw '"cdr" requires exactly 1 argument';
+	    }
+	    var val = _treeEval(node[1], context);
+	    if (!Array.isArray(val)) {
+		throw '"cdr" argument must be a pair or list';
+	    }
+	    if (val.length < 2) {
+		throw 'Value is not a pair or list with at least 2 elements';
+	    }
+	    return val[1];
+	} else if (fn === 'car') {
+	    return (function () {
+		if (node.length != 2) {
+		    throw '"car" requires exactly 1 argument';
+		}
+		var val = _treeEval(node[1], context);
+		if (!Array.isArray(val)) {
+		    throw '"car" argument must be a pair or list';
+		}
+		if (val.length < 2) {
+		    throw 'Value is not a pair or list with at least 2 elements';
+		}
+
+		return val[0];
+	    })();
 	} else {
 	    if(!context[fn]) {
 		throw 'Unknown function name: ' + fn;
