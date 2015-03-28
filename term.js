@@ -1,16 +1,24 @@
 jQuery(function($, undefined) {
     function contextToTreeRepresentation(context) {
 	var data = [];
+	var props = [];
 	for(p in jsScheme.globalContext) {
+	    props.push(p);
+	}
+	props.sort();
+
+	props.forEach(function (p) {
 	    var value = jsScheme.globalContext[p];
 
 	    data.push({
-		label: p, // + ': ' + jsScheme.globalContext[p],
-		children: [{
-		    label: typeof value === 'function' ? 'procedure' : JSON.stringify(value)
-		}]
+		label: p + ' ' +  (typeof value === 'function' ? '' : JSON.stringify(value))
+		// TODO: support lists and pairs with children
+		// children: [{
+		//     label: typeof value === 'function' ? 'procedure' : JSON.stringify(value)
+		// }]
 	    });
-	}
+	});
+
 	return data;
     };
 

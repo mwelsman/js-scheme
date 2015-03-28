@@ -122,9 +122,10 @@
 
 	    if (typeof cVar === 'function') {
 		if(jsScheme.builtIns.hasOwnProperty(identifier)) {
-		    return 'Built-in procedure (JavaScript):\n' + cVar;
+		    throw 'Attempted to evaluate built-in procedure (JavaScript) "' + identifier +
+			'"\n' + cVar;
 		} else {
-		    return 'User-defined procedure "' + cVar.name +
+		    throw 'Attempted to evaluate built-in procedure (Scheme) "' + identifier +
 			'"\n  Arguments: ' + cVar.args +
 			'\n  Procedure: ' + JSON.stringify(cVar.procedure);
 		}
